@@ -1,10 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
 
 module SkiTypes where
 
@@ -13,6 +10,8 @@ import Data.Proxy
 data I
 data K
 data S
+data A
+data B
 
 data Leaf x
 data Node left right
@@ -52,3 +51,19 @@ instance (Reduce (Node (Node (Node x t) y) z) r, Reduce (Node (Node a b) c) x) =
 -- :t reduction (Proxy :: (Proxy (Node (Node (Node (Node (Leaf I) (Leaf S)) (Leaf K)) (Leaf S)) (Node (Leaf I) (Leaf K)))))
 
 -- start ghci without a type reduction limit -> % ghci skiType2 -freduction-depth=0
+
+-- reversal: S(K(SI))Kαβ
+-- :t reduction (Proxy :: (Proxy
+--   (Node
+--     (Node
+--       (Node
+--         (Node
+--           (Leaf S)
+--           (Node
+--             (Node (Leaf K) (Leaf S))
+--             (Leaf I)))
+--         (Leaf K))
+--       (Leaf A))
+--     (Leaf B))))
+
+-- :t reduction (Proxy :: (Proxy (Node (Node (Node (Node (Leaf S) (Node (Node (Leaf K) (Leaf S)) (Leaf I))) (Leaf K)) (Leaf A)) (Leaf B))))
