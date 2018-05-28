@@ -60,10 +60,12 @@ instance (Reduce (Node (Node (Node x t) y) z) r, Reduce (Node (Node a b) c) x) =
 --         (Node
 --           (Leaf S)
 --           (Node
---             (Node (Leaf K) (Leaf S))
---             (Leaf I)))
+--             (Leaf K)
+--             (Node
+--               (Leaf S)
+--               (Leaf I))))
 --         (Leaf K))
 --       (Leaf A))
 --     (Leaf B))))
 
--- :t reduction (Proxy :: (Proxy (Node (Node (Node (Node (Leaf S) (Node (Node (Leaf K) (Leaf S)) (Leaf I))) (Leaf K)) (Leaf A)) (Leaf B))))
+-- :t reduction (Proxy :: (Proxy (Node (Node (Node (Node (Leaf S) (Node (Leaf K) (Node (Leaf S) (Leaf I)))) (Leaf K)) (Leaf A)) (Leaf B))))))
