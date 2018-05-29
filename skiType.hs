@@ -2,6 +2,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
+-- {-# LANGUAGE OverlappingInstances #-}
 
 module SkiTypes where
 
@@ -19,28 +20,43 @@ data Node left right
 class Reduce combs result  | combs -> result where
   reduction :: Proxy combs -> Proxy result
   reduction Proxy = Proxy
-instance Reduce (Leaf I) (Leaf I)
+
+-- reduce (Node (Leaf x) ast) = Node (Leaf x) (reduce ast)
+-- how do we elevate this to the type level?
+
+-- instance Reduce (Leaf A) (Leaf A)
+-- instance Reduce (Leaf B) (Leaf B)
+
+instance (Reduce ast innerResult) => Reduce (Node (Leaf A) ast) (Node (Leaf A) innerResult)
+instance (Reduce ast innerResult) => Reduce (Node (Leaf B) ast) (Node (Leaf B) innerResult)
+-- instance (Reduce (Node (Leaf B) y) result, Reduce ast y) => Reduce (Node (Leaf B) ast) result
+-- instance (Reduce (Node (Leaf B) y) result, Reduce ast y) => Reduce (Node (Leaf B) ast) result
+
+instance {-# OVERLAPS #-} (Reduce (Node x y) r, Reduce (Node a b) x) => Reduce (Node (Node a b) y) r
+-- instance (Reduce (Node x y) r, Reduce (Node a b) x) => Reduce (Node (Node a b) y) r
+
+instance Reduce (Leaf x) (Leaf x)
+
 instance Reduce x y => Reduce (Node (Leaf I) x) y
 
-instance Reduce (Leaf K) (Leaf K)
 instance Reduce (Node (Leaf K) a) (Node (Leaf K) a)
 instance Reduce x y => Reduce (Node (Node (Leaf K) x) z) y
 
-instance Reduce (Leaf S) (Leaf S)
 instance Reduce (Node (Leaf S) a) (Node (Leaf S) a)
 instance Reduce (Node (Node (Leaf S) a) b) (Node (Node (Leaf S) a) b)
 instance Reduce (Node (Node a c) (Node b c)) result => Reduce (Node (Node (Node (Leaf S) a) b) c) result
 
--- instance (Reduce (Node x y) r, Reduce (Node a b) x) => Reduce (Node (Node a b) y) r
--- "pattern match on all other instances"
-instance (Reduce (Node x y) r, Reduce (Node (Leaf I) b) x) => Reduce (Node (Node (Leaf I) b) y) r
-instance (Reduce (Node (Node x y) z) r, Reduce (Node (Leaf K) b) x) => Reduce (Node (Node (Node (Leaf K) b) y) z) r
-instance (Reduce (Node (Node x y) z) r, Reduce (Node (Leaf I) b) x) => Reduce (Node (Node (Node (Leaf I) b) y) z) r
 
-instance (Reduce (Node (Node (Node x t) y) z) r, Reduce (Node (Leaf S) b) x) => Reduce (Node (Node (Node (Node (Leaf S) b) t) y) z) r
-instance (Reduce (Node (Node (Node x t) y) z) r, Reduce (Node (Leaf K) b) x) => Reduce (Node (Node (Node (Node (Leaf K) b) t) y) z) r
-instance (Reduce (Node (Node (Node x t) y) z) r, Reduce (Node (Leaf I) b) x) => Reduce (Node (Node (Node (Node (Leaf I) b) t) y) z) r
-instance (Reduce (Node (Node (Node x t) y) z) r, Reduce (Node (Node a b) c) x) => Reduce (Node (Node (Node (Node (Node a b) c) t) y) z) r
+
+-- "pattern match on all other instances"
+-- instance (Reduce (Node x y) r, Reduce (Node (Leaf I) b) x) => Reduce (Node (Node (Leaf I) b) y) r
+-- instance (Reduce (Node (Node x y) z) r, Reduce (Node (Leaf K) b) x) => Reduce (Node (Node (Node (Leaf K) b) y) z) r
+-- instance (Reduce (Node (Node x y) z) r, Reduce (Node (Leaf I) b) x) => Reduce (Node (Node (Node (Leaf I) b) y) z) r
+--
+-- instance (Reduce (Node (Node (Node x t) y) z) r, Reduce (Node (Leaf S) b) x) => Reduce (Node (Node (Node (Node (Leaf S) b) t) y) z) r
+-- instance (Reduce (Node (Node (Node x t) y) z) r, Reduce (Node (Leaf K) b) x) => Reduce (Node (Node (Node (Node (Leaf K) b) t) y) z) r
+-- instance (Reduce (Node (Node (Node x t) y) z) r, Reduce (Node (Leaf I) b) x) => Reduce (Node (Node (Node (Node (Leaf I) b) t) y) z) r
+-- instance (Reduce (Node (Node (Node x t) y) z) r, Reduce (Node (Node a b) c) x) => Reduce (Node (Node (Node (Node (Node a b) c) t) y) z) r
 
 
 -- https://en.wikipedia.org/wiki/SKI_combinator_calculus#Self-application_and_recursion
@@ -68,4 +84,4 @@ instance (Reduce (Node (Node (Node x t) y) z) r, Reduce (Node (Node a b) c) x) =
 --       (Leaf A))
 --     (Leaf B))))
 
--- :t reduction (Proxy :: (Proxy (Node (Node (Node (Node (Leaf S) (Node (Leaf K) (Node (Leaf S) (Leaf I)))) (Leaf K)) (Leaf A)) (Leaf B))))))
+-- :t reduction (Proxy :: (Proxy (Node (Node (Node (Node (Leaf S) (Node (Leaf K) (Node (Leaf S) (Leaf I)))) (Leaf K)) (Leaf A)) (Leaf B))))
