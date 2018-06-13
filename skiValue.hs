@@ -1,4 +1,21 @@
-module SKIreduce where
+
+import Data.Foldable
+
+main :: IO ()
+main = do
+  let terms =
+        Node (Leaf I) (Leaf I) :
+        Node (Node (Leaf K) (Leaf A)) (Leaf B) :
+        Node
+          (Node
+            (Node (Node (Leaf S) (Node (Leaf K) (Node (Leaf S) (Leaf I)))) (Leaf K))
+            (Leaf A)) (Leaf B) :
+        []
+  forM_ terms $ \ term -> do
+    print term
+    putStrLn "==>"
+    print $ reduce term
+    putStrLn "======================"
 
 data SKI = S | K | I | A | B | Var Int deriving (Show)
 data AST = Leaf SKI | Node AST AST deriving (Show)
